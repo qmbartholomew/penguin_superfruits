@@ -53,7 +53,7 @@ router.post("/", (req, res) => {
 
     // add the username to req.body, to track user
     req.body.username = req.session.username
-    
+
     // create the new fruit
     Fruit.create(req.body)
     .then((fruit) => {
