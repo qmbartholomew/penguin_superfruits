@@ -10,40 +10,26 @@ const Fruit = require("../models/fruit.js") // fruit model
 const router = express.Router()
 
 /////////////////////////////
-// Routes
+// Router Middelware
 /////////////////////////////
-
-////////////////////////
-// Fruits Routes
-////////////////////////
-
-//seed route - seed our starter data
-router.get("/seed", (req, res) => {
-    // array of starter fruits
-    const startFruits = [
-        { name: "Orange", color: "orange", readyToEat: false },
-        { name: "Grape", color: "purple", readyToEat: false },
-        { name: "Banana", color: "orange", readyToEat: false },
-        { name: "Strawberry", color: "red", readyToEat: false },
-        { name: "Coconut", color: "brown", readyToEat: false },
-      ];
-
-    // delete all fruits
-    Fruit.deleteMany({})
-    .then((data) => {
-        // seed the starter fruits
-        Fruit.create(startFruits)
-        .then((data) => {
-            // send created fruits back as JSON
-            res.json(data)
-        })
-    })
+// middleware to check if user is logged in
+router.use((req, res, next) => {
+    // check if logged in
+    if (req.session.loggedIn){
+        // send to routes
+        next()
+    } else {
+        res.redirect("/user/login")
+    }
 })
 
+////////////////////////
+// Routes
+////////////////////////
 // index route - get - /fruits
 router.get("/", (req, res) => {
     //find all the fruits
-    Fruit.find({})
+    Fruit.find({username: req.session.username})
     .then((fruits) => {
         // render the index template with the fruits
         res.render("fruits/index.liquid", {fruits})
@@ -65,6 +51,9 @@ router.post("/", (req, res) => {
     // convert the checkbox property to true or false
     req.body.readyToEat = req.body.readyToEat === "on" ? true : false
 
+    // add the username to req.body, to track user
+    req.body.username = req.session.username
+    
     // create the new fruit
     Fruit.create(req.body)
     .then((fruit) => {

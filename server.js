@@ -7,6 +7,10 @@ const morgan = require("morgan") // logger
 const methodOverride = require("method-override") // to swap request methods
 const path = require("path") // helper functions for file paths
 const FruitsRouter = require("./controllers/fruit")
+const UserRouter = require("./controllers/user")
+const session = require("express-session") // session middleware
+const MongoStore = require("connect-mongo") // save sessions in mongo
+
 
 /////////////////////////////////
 // Create our app with object, configure liquid
@@ -35,17 +39,25 @@ app.use(methodOverride("_method"))
 app.use(express.urlencoded({extended: true}))
 // setup our public folder to serve files statically
 app.use(express.static("public"))
+// middlware to create sessions (req.session)
+app.use(session({
+    secret: process.env.SECRET,
+    store: MongoStore.create({mongoUrl: process.env.DATABASE_URL}),
+    resave: false
+}))
 
 ////////////////////////////////////////
 // Routes
 /////////////////////////////////////////
 
 app.get("/", (req, res) => {
-    res.send("your server is running... better catch it")
+    res.render('index.liquid')
 })
 
 // Register Fruits Router
 app.use("/fruits", FruitsRouter)
+// Register User Router
+app.use("/user", UserRouter)
 
 /////////////////////////////////////////////
 // Setup Server Listener
